@@ -43,6 +43,7 @@ export default function Home() {
   };
 
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const totalItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
   const handleCheckout = () => {
     if (!customer.name || !customer.hotel || !customer.room) {
@@ -97,15 +98,16 @@ export default function Home() {
         <h1 className="text-xs font-black tracking-widest flex items-center gap-1.5">
           <span>🕋</span> ZADESHAN.STORE
         </h1>
-        <div className="text-[10px] text-emerald-400 font-mono bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
-          Bag ({cart.reduce((a,b)=>a+b.qty,0)})
+        <div className="flex items-center gap-2 text-[10px] text-emerald-400 font-mono bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+          <span>🛍️ Bag:</span>
+          <span className="font-bold text-white">{totalItemsCount}</span>
         </div>
       </header>
 
       {/* MAIN CONTAINER */}
       <main className="relative z-20 flex-1 max-w-md mx-auto w-full px-3 py-4 flex flex-col space-y-4">
         
-        {/* TITLE & SUBTITLE */}
+        {/* TITLE */}
         <div className="flex justify-between items-end">
           <div>
             <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">Showroom Makkah</span>
@@ -114,7 +116,7 @@ export default function Home() {
           <span className="text-[10px] text-neutral-400 font-mono">Swipe →</span>
         </div>
 
-        {/* 3D CAROUSEL SLIDER (UKURAN COMPACT & EFEK NEON GLOW) */}
+        {/* 3D CAROUSEL SLIDER DENGAN EFEK NEON GLOW */}
         <div className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar cursor-grab active:cursor-grabbing snap-x snap-mandatory">
           <div className="flex gap-3 w-max px-1">
             {products.map((p, idx) => {
@@ -131,7 +133,7 @@ export default function Home() {
                 >
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-4">
-                    <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">Item #{idx+1}</span>
+                    <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">✨ Item #{idx+1}</span>
                     <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
                     <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price} <span className="text-[9px] font-normal text-neutral-400">/{p.unit}</span></p>
                   </div>
@@ -154,22 +156,54 @@ export default function Home() {
           ))}
         </div>
 
-        {/* PANEL DETAIL PRODUK AKTIF & TOMBOL BELI */}
+        {/* PANEL DETAIL PRODUK AKTIF & TOMBOL BELI DENGAN IKON */}
         {activeProduct && (
           <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">Selected Item</span>
+              <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-1">
+                <span>🏷️</span> Selected Item
+              </span>
               <h4 className="font-bold text-xs text-white truncate">{activeProduct.name}</h4>
               <p className="text-[11px] text-emerald-400 font-black mt-0.5">SAR {activeProduct.price} <span className="text-[9px] font-normal text-neutral-400">/{activeProduct.unit}</span></p>
             </div>
             <button
               onClick={() => addToCart(activeProduct)}
-              className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(16,185,129,0.5)] flex-shrink-0"
+              className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-1.5 flex-shrink-0"
             >
-              + Beli
+              <span>🛒</span> + Beli
             </button>
           </div>
         )}
+
+        {/* BOX KERANJANG BELANJA (INTERAKTIF DENGAN LIST BARANG) */}
+        <div className="bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3.5 shadow-xl space-y-2.5">
+          <div className="flex justify-between items-center text-xs pb-2 border-b border-white/10">
+            <span className="font-extrabold text-white flex items-center gap-1.5">
+              <span>🛒</span> Rincian Keranjang ({totalItemsCount} item)
+            </span>
+            <span className="font-black text-emerald-400">SAR {totalPrice}</span>
+          </div>
+
+          {cart.length === 0 ? (
+            <p className="text-[11px] text-neutral-400 text-center py-2">Keranjang masih kosong. Pilih produk dan klik "+ Beli".</p>
+          ) : (
+            <div className="space-y-2 max-h-36 overflow-y-auto no-scrollbar">
+              {cart.map(item => (
+                <div key={item.id} className="flex justify-between items-center bg-black/40 p-2 rounded-xl border border-white/5 text-xs">
+                  <div className="pr-2 min-w-0 flex-1">
+                    <h4 className="font-bold text-white text-[11px] truncate">{item.name}</h4>
+                    <p className="text-emerald-400 text-[10px] font-bold">SAR {item.price * item.qty}</p>
+                  </div>
+                  <div className="flex items-center space-x-1.5 flex-shrink-0">
+                    <button onClick={() => updateQty(item.id, -1)} className="w-5 h-5 bg-neutral-800 rounded font-bold text-neutral-300 text-xs flex items-center justify-center">-</button>
+                    <span className="font-bold text-white w-4 text-center text-xs">{item.qty}</span>
+                    <button onClick={() => updateQty(item.id, 1)} className="w-5 h-5 bg-neutral-800 rounded font-bold text-neutral-300 text-xs flex items-center justify-center">+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </main>
 
@@ -178,9 +212,8 @@ export default function Home() {
         <div className="max-w-md mx-auto space-y-2.5">
           <div className="flex justify-between items-center text-xs">
             <span className="font-extrabold text-white flex items-center gap-1">
-              <span>🛒</span> Total Belanja: <strong className="text-emerald-400">SAR {totalPrice}</strong>
+              <span>🏨</span> Konfirmasi Kamar Hotel Makkah
             </span>
-            <span className="text-[10px] text-neutral-400">{cart.reduce((a,b)=>a+b.qty,0)} item</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">

@@ -27,19 +27,27 @@ export default function Home() {
 
   const activeProduct = products[currentIndex] || products[0];
 
-  // Fungsi saat slider digeser untuk mendeteksi posisi produk aktif secara akurat
+  // Fungsi haptic feedback getar halus ala grigi jam
+  const triggerHaptic = () => {
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(12); // Durasi 12ms (getar sangat singkat dan renyah)
+    }
+  };
+
   const handleScroll = () => {
     if (!sliderRef.current) return;
     const scrollLeft = sliderRef.current.scrollLeft;
-    const cardWidth = 240; // perkiraan lebar card (w-56 / 224px + gap 16px)
+    const cardWidth = 240; 
     const index = Math.round(scrollLeft / cardWidth);
     if (index >= 0 && index < products.length && index !== currentIndex) {
       setCurrentIndex(index);
+      triggerHaptic(); // Getar aktif saat produk bergeser otomatis
     }
   };
 
   const scrollToCard = (index) => {
     setCurrentIndex(index);
+    triggerHaptic();
     if (sliderRef.current) {
       const cardWidth = 240;
       sliderRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
@@ -47,6 +55,7 @@ export default function Home() {
   };
 
   const addToCart = (product) => {
+    triggerHaptic();
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
       setCart(cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
@@ -56,6 +65,7 @@ export default function Home() {
   };
 
   const updateQty = (id, delta) => {
+    triggerHaptic();
     setCart(cart.map(item => {
       if (item.id === id) {
         const newQty = item.qty + delta;
@@ -138,10 +148,10 @@ export default function Home() {
                 <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">Showroom Makkah</span>
                 <h2 className="text-base font-black tracking-tight text-white">Featured Showcase</h2>
               </div>
-              <span className="text-[10px] text-neutral-400 font-mono">Geser Mulus ⇄</span>
+              <span className="text-[10px] text-neutral-400 font-mono">Geser Getar ⇄</span>
             </div>
 
-            {/* 3D CAROUSEL SLIDER DENGAN SCROLL LISTENER */}
+            {/* 3D CAROUSEL SLIDER DENGAN HAPTIC FEEDBACK */}
             <div 
               ref={sliderRef}
               onScroll={handleScroll}
@@ -172,7 +182,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* INDIKATOR GARIS DOTS OTOMATIS */}
+            {/* INDIKATOR GARIS DOTS */}
             <div className="flex justify-center items-center gap-1.5 -mt-2">
               {products.map((_, idx) => (
                 <button
@@ -185,7 +195,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* PANEL DETAIL & BELI (LANGSUNG MENYESUAIKAN PRODUK AKTIF) */}
+            {/* PANEL DETAIL & BELI */}
             {activeProduct && (
               <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -302,7 +312,7 @@ export default function Home() {
         <div className="bg-neutral-900/90 backdrop-blur-2xl border border-emerald-500/30 rounded-full px-4 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex justify-between items-center relative">
           
           <button
-            onClick={() => setActiveTab("home")}
+            onClick={() => { triggerHaptic(); setActiveTab("home"); }}
             className={`flex flex-col items-center transition-all ${activeTab === "home" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
           >
             <span className="text-base">✨</span>
@@ -310,7 +320,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => setActiveTab("cart")}
+            onClick={() => { triggerHaptic(); setActiveTab("cart"); }}
             className={`flex flex-col items-center transition-all relative ${activeTab === "cart" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
           >
             <span className="text-base">🛒</span>
@@ -323,7 +333,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => setActiveTab("checkout")}
+            onClick={() => { triggerHaptic(); setActiveTab("checkout"); }}
             className={`flex flex-col items-center transition-all ${activeTab === "checkout" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
           >
             <span className="text-base">🏨</span>
@@ -332,6 +342,7 @@ export default function Home() {
 
           <Link
             href="/admin"
+            onClick={triggerHaptic}
             className="flex flex-col items-center transition-all text-neutral-400 hover:text-white"
           >
             <span className="text-base">⚙️</span>

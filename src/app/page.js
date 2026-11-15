@@ -2,274 +2,239 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
-export default function Storefront() {
+export default function Home() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [form, setForm] = useState({ name: "", phone: "", hotel: "", room: "", payment: "QRIS / Transfer (IDR)" });
+  const [customer, setCustomer] = useState({ name: "", phone: "", hotel: "", room: "", payment: "Cash on Delivery" });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.from("products").select("*").then(({ data }) => {
-      if (data?.length) setProducts(data);
-      else setProducts([
-        { id: 1, name: "Kurma Ajwa Al-Aliyah (1kg)", price: 65, unit: "Kg", desc: "Kurma nabi asli Madinah kualitas super premium.", image: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=500", rating: "4.9", sold: "1.2k" },
-        { id: 2, name: "Air Zam-Zam Asli (5 Liter)", price: 15, unit: "Galon", desc: "Zam-zam resmi segel kedap udara Bandara Jeddah.", image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&q=80&w=500", rating: "5.0", sold: "3.5k" },
-        { id: 3, name: "Cokelat Kerikil & Susu Badam", price: 35, unit: "Kotak", desc: "Oleh-oleh favorit jamaah haji & umroh.", image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&q=80&w=500", rating: "4.8", sold: "850" },
-        { id: 4, name: "Kacang Pistachio Premium (500g)", price: 45, unit: "Pouch", desc: "Gurih, renyah, dan diproses higienis.", image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=500", rating: "4.9", sold: "620" }
-      ]);
-    });
+    fetchProducts();
   }, []);
 
-  const addToCart = (p) => {
-    setCart(prev => {
-      const exist = prev.find(i => i.id === p.id);
-      return exist ? prev.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i) : [...prev, { ...p, qty: 1 }];
-    });
+  const fetchProducts = async () => {
+    const { data } = await supabase.from("products").select("*").order("id", { ascending: true });
+    if (data) setProducts(data);
+    setLoading(false);
+  };
+
+  const addToCart = (product) => {
+    const existing = cart.find(item => item.id === product.id);
+    if (existing) {
+      setCart(cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
+    } else {
+      setCart([...cart, { ...product, qty: 1 }]);
+    }
   };
 
   const updateQty = (id, delta) => {
-    setCart(prev => prev.map(i => {
-      if (i.id === id) {
-        const newQty = i.qty + delta;
-        return newQty > 0 ? { ...i, qty: newQty } : null;
+    setCart(cart.map(item => {
+      if (item.id === id) {
+        const newQty = item.qty + delta;
+        return newQty > 0 ? { ...item, qty: newQty } : null;
       }
-      return i;
+      return item;
     }).filter(Boolean));
   };
 
-  const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-  const handleCheckout = async (e) => {
-    e.preventDefault();
-    if (!cart.length) return alert("Keranjang belanja masih kosong!");
+  const handleCheckout = async () => {
+    if (!customer.name || !customer.phone || !customer.hotel || !customer.room) {
+      return alert("Mohon lengkapi Nama, No WhatsApp, Nama Hotel, dan Nomor Kamar!");
+    }
+    if (cart.length === 0) return alert("Keranjang belanja masih kosong!");
 
+    const itemsSummary = cart.map(i => `${i.name} (${i.qty} ${i.unit})`).join(", ");
+
+    // Simpan ke Supabase
     const { error } = await supabase.from("orders").insert([{
-      customer_name: form.name, phone: form.phone, hotel: form.hotel, 
-      room: form.room, payment: form.payment, 
-      items: cart.map(i => `${i.name} (${i.qty}x)`).join(", "), total
+      customer_name: customer.name,
+      phone: customer.phone,
+      hotel: customer.hotel,
+      room: customer.room,
+      items: itemsSummary,
+      payment: customer.payment,
+      total: totalPrice
     }]);
 
-    if (error) return alert("Gagal menyimpan ke database: " + error.message);
+    if (error) {
+      alert("Gagal memproses pesanan: " + error.message);
+      return;
+    }
 
-    const msg = `*PESANAN BARU - ZADESHAN STORE MAKKAH*%0A%0A` +
-                `*Jamaah:* ${form.name}%0A` +
-                `*No. WA:* ${form.phone}%0A` +
-                `*Antar Ke:* Hotel ${form.hotel} (Kmr ${form.room})%0A` +
-                `*Metode Bayar:* ${form.payment}%0A%0A` +
-                `*Detail Rincian:*%0A` +
-                cart.map(i => `• ${i.name} (${i.qty}x) = SAR ${i.price * i.qty}`).join("%0A") +
-                `%0A%0A*TOTAL: SAR ${total}*%0A%0AMohon konfirmasi dan antar ke hotel ya Admin!`;
+    // Format Pesan WhatsApp
+    const waMessage = `*PESANAN BARU - ZADESHAN STORE*\n\n` +
+      `👤 Nama: ${customer.name}\n` +
+      `📱 No WA: ${customer.phone}\n` +
+      `🏨 Hotel: ${customer.hotel}\n` +
+      `🚪 Kamar: ${customer.room}\n` +
+      `💳 Pembayaran: ${customer.payment}\n\n` +
+      `*Rincian Belanja:*\n` +
+      cart.map(i => `- ${i.name} x${i.qty} = SAR ${i.price * i.qty}`).join("\n") +
+      `\n\n*TOTAL: SAR ${totalPrice}*\n\nMohon segera diproses pengirimannya ke kamar hotel. Terima kasih!`;
 
-    // Mengarah ke nomor WhatsApp Admin baru: 085765813040
-    window.open(`https://wa.me/6285765813040?text=${msg}`, "_blank");
+    const encodedMessage = encodeURIComponent(waMessage);
+    const sellerWhatsApp = "6285765813040"; // Nomor WA Admin
+    window.open(`https://wa.me/${sellerWhatsApp}?text=${encodedMessage}`, "_blank");
   };
 
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
   return (
-    <div className="min-h-screen bg-slate-100 font-sans text-slate-800 pb-12">
-      {/* Top Navbar Header */}
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-emerald-700 to-teal-800 text-white shadow-md">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🕋</span>
-            <div>
-              <h1 className="font-black text-lg tracking-wide leading-none">ZADESHAN</h1>
-              <p className="text-[10px] text-emerald-200">Express Delivery Hotel Makkah</p>
-            </div>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20">
+      
+      {/* Header Toko */}
+      <header className="bg-slate-900 text-white py-6 px-4 shadow-md sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-lg font-black tracking-wider flex items-center gap-2">
+              <span>🕋</span> ZADESHAN STORE
+            </h1>
+            <p className="text-[11px] text-emerald-400 font-mono">OLEH-OLEH & KEBUTUHAN JAMAAH DI MAKKAH</p>
           </div>
-
-          {/* Search Bar */}
-          <div className="flex-1 max-w-md hidden md:block">
-            <input
-              type="text"
-              placeholder="Cari kurma, zam-zam, cokelat..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-1.5 rounded-full text-slate-800 text-sm focus:outline-none shadow-inner"
-            />
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <a href="/admin" className="text-xs bg-emerald-950/40 hover:bg-emerald-950/60 border border-emerald-400/30 text-emerald-100 px-3 py-1.5 rounded-full font-medium transition">
-              ⚙️ Dashboard Admin
-            </a>
-          </div>
+          <a href="/admin" className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 transition">
+            ⚙️ Admin Login
+          </a>
         </div>
       </header>
 
-      {/* Hero Banner Promo */}
-      <div className="max-w-6xl mx-auto px-4 mt-4">
-        <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 text-white shadow-lg flex justify-between items-center relative overflow-hidden">
-          <div className="z-10 max-w-md">
-            <span className="bg-white/20 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">🚚 Free Delivery Makkah</span>
-            <h2 className="text-2xl font-black mt-2">Oleh-Oleh Haji & Umroh Langsung Antar Ke Kamar Hotel</h2>
-            <p className="text-xs text-amber-100 mt-1">Bayar via QRIS (Rupiah) atau Cash (SAR) saat barang diterima.</p>
-          </div>
-          <span className="text-7xl opacity-20 hidden sm:block">🌴</span>
-        </div>
-      </div>
-
-      {/* Main Content Layout */}
-      <div className="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="max-w-6xl mx-auto px-4 mt-6 space-y-8">
         
-        {/* Katalog Produk (Shopee Grid) */}
-        <div className="lg:col-span-2">
+        {/* SECTION: KATALOG PRODUK SLIDING KE SAMPING */}
+        <section>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-extrabold text-slate-800 text-lg flex items-center gap-2">
-              🔥 Produk Terpopuler
-            </h3>
-            <span className="text-xs text-slate-500">{filteredProducts.length} Produk Tersedia</span>
+            <h2 className="font-extrabold text-base text-slate-900">🛍️ Katalog Oleh-Oleh Pilihan</h2>
+            <span className="text-xs text-slate-400">Geser ke samping 👉</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredProducts.map(p => (
-              <div key={p.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-slate-200/80 overflow-hidden flex flex-col justify-between group">
-                <div>
-                  <div className="relative aspect-square overflow-hidden bg-slate-50">
-                    <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-                    <span className="absolute top-2 left-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow">
-                      STOK READY
-                    </span>
-                  </div>
-
-                  <div className="p-3">
-                    <h4 className="font-bold text-sm text-slate-900 line-clamp-2 leading-snug">{p.name}</h4>
-                    <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{p.desc}</p>
-                    
-                    <div className="flex items-center gap-1 mt-2 text-[11px] text-amber-500 font-semibold">
-                      ⭐ {p.rating || "4.9"} <span className="text-slate-400 font-normal">({p.sold || "100+"} terjual)</span>
+          {loading ? (
+            <p className="text-xs text-slate-400 text-center py-10">Memuat produk dari toko...</p>
+          ) : products.length === 0 ? (
+            <p className="text-xs text-slate-400 text-center py-10">Belum ada produk tersedia.</p>
+          ) : (
+            /* KUNCI SLIDING KE SAMPING: overflow-x-auto, flex, w-max */
+            <div className="w-full overflow-x-auto pb-4 pt-1 scrollbar-thin">
+              <div className="flex gap-4 w-max px-1">
+                {products.map(p => (
+                  <div key={p.id} className="w-56 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-3 flex flex-col justify-between flex-shrink-0 transition hover:shadow-md">
+                    <div>
+                      <img src={p.image} alt={p.name} className="w-full h-36 object-cover rounded-xl bg-slate-100 mb-3" />
+                      <h3 className="font-bold text-xs text-slate-900 line-clamp-2">{p.name}</h3>
+                      <p className="text-xs text-emerald-700 font-black mt-1">SAR {p.price} <span className="text-[10px] font-normal text-slate-400">/{p.unit}</span></p>
                     </div>
-
-                    <div className="mt-3 flex items-baseline justify-between">
-                      <div>
-                        <span className="text-xs text-emerald-700 font-bold">SAR </span>
-                        <span className="text-lg font-black text-emerald-700">{p.price}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-400">/{p.unit}</span>
-                    </div>
+                    <button
+                      onClick={() => addToCart(p)}
+                      className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-xl transition shadow-sm"
+                    >
+                      + Tambah ke Keranjang
+                    </button>
                   </div>
-                </div>
-
-                <div className="p-3 pt-0">
-                  <button 
-                    onClick={() => addToCart(p)}
-                    className="w-full bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold text-xs py-2 rounded-lg border border-emerald-600/30 transition duration-200"
-                  >
-                    + Keranjang
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Sidebar Keranjang Belanja & Checkout Drawer */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sticky top-20">
-            <div className="flex justify-between items-center border-b pb-3 mb-3">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                🛒 Keranjang Belanja
-              </h3>
-              <span className="bg-emerald-100 text-emerald-800 font-bold text-xs px-2.5 py-0.5 rounded-full">
-                {totalItems} item
-              </span>
             </div>
+          )}
+        </section>
 
-            {!cart.length ? (
-              <div className="py-8 text-center text-slate-400 text-xs">
-                <p className="text-3xl mb-1">🛍️</p>
-                Keranjang Anda masih kosong. Silakan pilih produk di samping!
-              </div>
+        {/* SECTION: KERANJANG & CHECKOUT FORM */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Daftar Keranjang */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+            <h3 className="font-extrabold text-sm mb-4 text-slate-900">🛒 Keranjang Belanja Anda</h3>
+            {cart.length === 0 ? (
+              <p className="text-xs text-slate-400 py-8 text-center">Keranjang masih kosong. Yuk pilih produk di atas!</p>
             ) : (
-              <div className="space-y-4">
-                {/* List Items */}
-                <div className="max-h-52 overflow-y-auto space-y-3 pr-1">
-                  {cart.map(i => (
-                    <div key={i.id} className="flex justify-between items-center text-xs border-b border-slate-100 pb-2">
-                      <div className="flex-1 pr-2">
-                        <p className="font-semibold text-slate-800 line-clamp-1">{i.name}</p>
-                        <p className="text-[11px] text-emerald-700 font-bold">SAR {i.price * i.qty}</p>
-                      </div>
-                      <div className="flex items-center space-x-1.5 bg-slate-100 px-2 py-1 rounded-lg">
-                        <button onClick={() => updateQty(i.id, -1)} className="font-bold text-slate-600 px-1">-</button>
-                        <span className="font-bold px-1">{i.qty}</span>
-                        <button onClick={() => updateQty(i.id, 1)} className="font-bold text-slate-600 px-1">+</button>
-                      </div>
+              <div className="space-y-3">
+                {cart.map(item => (
+                  <div key={item.id} className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
+                    <div>
+                      <h4 className="font-bold text-slate-800">{item.name}</h4>
+                      <p className="text-emerald-700 font-semibold">SAR {item.price * item.qty}</p>
                     </div>
-                  ))}
+                    <div className="flex items-center space-x-2">
+                      <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 bg-white border rounded-lg font-bold text-slate-600 shadow-sm">-</button>
+                      <span className="font-bold text-slate-800 w-4 text-center">{item.qty}</span>
+                      <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 bg-white border rounded-lg font-bold text-slate-600 shadow-sm">+</button>
+                    </div>
+                  </div>
+                ))}
+                <div className="border-t pt-3 flex justify-between items-center font-black text-sm text-slate-900">
+                  <span>Total Pembayaran:</span>
+                  <span className="text-emerald-700">SAR {totalPrice}</span>
                 </div>
-
-                {/* Ringkasan Subtotal */}
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
-                  <div className="flex justify-between text-slate-500">
-                    <span>Pengiriman Hotel:</span>
-                    <span className="text-emerald-700 font-semibold">GRATIS</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-sm text-slate-900 pt-1 border-t">
-                    <span>Total Tagihan:</span>
-                    <span className="text-emerald-700 font-black text-base">SAR {total}</span>
-                  </div>
-                </div>
-
-                {/* Form Checkout Jamaah */}
-                <form onSubmit={handleCheckout} className="space-y-2.5 pt-2">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">📍 Lokasi Antar Hotel Makkah</p>
-
-                  <input 
-                    type="text" 
-                    placeholder="Nama Lengkap Jamaah" 
-                    required 
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-emerald-600"
-                    onChange={e => setForm({ ...form, name: e.target.value })} 
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="No. WhatsApp Aktif (+62...)" 
-                    required 
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-emerald-600"
-                    onChange={e => setForm({ ...form, phone: e.target.value })} 
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input 
-                      type="text" 
-                      placeholder="Nama Hotel" 
-                      required 
-                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-emerald-600"
-                      onChange={e => setForm({ ...form, hotel: e.target.value })} 
-                    />
-                    <input 
-                      type="text" 
-                      placeholder="No. Kamar" 
-                      required 
-                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-emerald-600"
-                      onChange={e => setForm({ ...form, room: e.target.value })} 
-                    />
-                  </div>
-
-                  <select 
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white font-medium"
-                    onChange={e => setForm({ ...form, payment: e.target.value })}
-                  >
-                    <option value="QRIS / Transfer (IDR)">QRIS / Transfer Bank (Rupiah)</option>
-                    <option value="Cash saat Terima (SAR)">Cash SAR (Saat Terima di Hotel)</option>
-                  </select>
-
-                  <button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3 rounded-xl text-xs shadow-md shadow-emerald-600/20 transition duration-200 flex items-center justify-center gap-2"
-                  >
-                    <span>Pesan via WhatsApp</span>
-                    <span>➔</span>
-                  </button>
-                </form>
               </div>
             )}
           </div>
+
+          {/* Form Data Pengiriman Hotel */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+            <h3 className="font-extrabold text-sm mb-4 text-slate-900">🏨 Data Pengiriman ke Kamar Hotel</h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-600 mb-1">Nama Pemesan</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: H. Nazlan Hafidz"
+                  value={customer.name}
+                  onChange={e => setCustomer({ ...customer, name: e.target.value })}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-slate-600 mb-1">Nomor WhatsApp (Aktif di Makkah)</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: 62857xxxxxxxx"
+                  value={customer.phone}
+                  onChange={e => setCustomer({ ...customer, phone: e.target.value })}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold text-slate-600 mb-1">Nama Hotel di Makkah</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Hilton Suites"
+                    value={customer.hotel}
+                    onChange={e => setCustomer({ ...customer, hotel: e.target.value })}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-600 mb-1">Nomor Kamar</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 504"
+                    value={customer.room}
+                    onChange={e => setCustomer({ ...customer, room: e.target.value })}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-slate-600 mb-1">Metode Pembayaran</label>
+                <select
+                  value={customer.payment}
+                  onChange={e => setCustomer({ ...customer, payment: e.target.value })}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl bg-white focus:outline-emerald-600 font-semibold text-emerald-700"
+                >
+                  <option value="Cash on Delivery (COD di Kamar Hotel)">Cash on Delivery (Bayar di Kamar Hotel)</option>
+                  <option value="Transfer Bank / QRIS Indonesia">Transfer Bank / QRIS</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleCheckout}
+                className="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2"
+              >
+                <span>💬 Pesan via WhatsApp & Simpan Order</span>
+              </button>
+            </div>
+          </div>
+
         </div>
 
-      </div>
+      </main>
     </div>
   );
 }

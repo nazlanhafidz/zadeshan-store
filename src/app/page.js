@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 const DEFAULT_PRODUCTS = [
-  { id: 1, name: "Kurma Ajwa Premium (1kg)", price: 80, unit: "Kg", image: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=800", desc: "Kurma Ajwa asli Madinah pilihan terbaik." },
-  { id: 2, name: "Kacang Pistachio Shali (500g)", price: 55, unit: "Pack", image: "https://images.unsplash.com/photo-1515942661991-b0e657d0d018?auto=format&fit=crop&q=80&w=800", desc: "Pistachio renyah gurih kualitas ekspor." },
-  { id: 3, name: "Coklat Arab Dates & Gold", price: 60, unit: "Box", image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&q=80&w=800", desc: "Coklat mewah isi kurma khas Makkah." },
-  { id: 4, name: "Kacang Almond Panggang (500g)", price: 45, unit: "Pack", image: "https://images.unsplash.com/photo-1508061253366-f7da158b6d46?auto=format&fit=crop&q=80&w=800", desc: "Almond panggang bernutrisi tinggi." },
-  { id: 5, name: "Air Zamzam Asli Makkah (5L)", price: 35, unit: "Galon", image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&q=80&w=800", desc: "Air Zamzam suci langsung dari Makkah." }
+  { id: 1, name: "Kurma Ajwa Premium (1kg)", price: 80, unit: "Kg", badge: "🔥 Paling Dicari", image: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=800", desc: "Kurma Ajwa asli Madinah pilihan terbaik." },
+  { id: 2, name: "Kacang Pistachio Shali (500g)", price: 55, unit: "Pack", badge: "⭐ Favorit Jemaah", image: "https://images.unsplash.com/photo-1515942661991-b0e657d0d018?auto=format&fit=crop&q=80&w=800", desc: "Pistachio renyah gurih kualitas ekspor." },
+  { id: 3, name: "Coklat Arab Dates & Gold", price: 60, unit: "Box", badge: "🍫 Best Seller", image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&q=80&w=800", desc: "Coklat mewah isi kurma khas Makkah." },
+  { id: 4, name: "Kacang Almond Panggang (500g)", price: 45, unit: "Pack", badge: "✨ Rekomendasi", image: "https://images.unsplash.com/photo-1508061253366-f7da158b6d46?auto=format&fit=crop&q=80&w=800", desc: "Almond panggang bernutrisi tinggi." },
+  { id: 5, name: "Air Zamzam Asli Makkah (5L)", price: 35, unit: "Galon", badge: "🕋 Dijamin Asli", image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&q=80&w=800", desc: "Air Zamzam suci langsung dari Makkah." }
 ];
 
 export default function Home() {
@@ -15,7 +15,8 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState("home");
-  const [customer, setCustomer] = useState({ name: "", hotel: "", room: "", payment: "COD (Bayar di Kamar Hotel)" });
+  // Hotel diset default otomatis satu rombongan
+  const [customer, setCustomer] = useState({ name: "", hotel: "Hotel Rombongan Makkah", room: "", payment: "COD (Bayar di Kamar Hotel)" });
   
   const sliderRef = useRef(null);
   const lastVibratedIndex = useRef(0);
@@ -28,15 +29,12 @@ export default function Home() {
 
   const activeProduct = products[currentIndex] || products[0];
 
-  // Fungsi haptic feedback yang lebih kuat & stabil di HP
   const triggerHaptic = (intensity = 15) => {
     try {
       if (typeof window !== "undefined" && "vibrate" in navigator) {
         navigator.vibrate(intensity);
       }
-    } catch (e) {
-      console.log("Haptic not supported");
-    }
+    } catch (e) {}
   };
 
   const handleScroll = () => {
@@ -47,7 +45,7 @@ export default function Home() {
     if (index >= 0 && index < products.length && index !== currentIndex) {
       setCurrentIndex(index);
       if (lastVibratedIndex.current !== index) {
-        triggerHaptic(20); // Getar grigi saat pindah produk
+        triggerHaptic(20);
         lastVibratedIndex.current = index;
       }
     }
@@ -63,7 +61,7 @@ export default function Home() {
   };
 
   const addToCart = (product) => {
-    triggerHaptic(40); // Getar lebih terasa saat klik Beli
+    triggerHaptic(30);
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
       setCart(cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
@@ -73,7 +71,7 @@ export default function Home() {
   };
 
   const updateQty = (id, delta) => {
-    triggerHaptic(20);
+    triggerHaptic(15);
     setCart(cart.map(item => {
       if (item.id === id) {
         const newQty = item.qty + delta;
@@ -86,10 +84,31 @@ export default function Home() {
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const totalItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
+  const handleInstantBuy = (product) => {
+    triggerHaptic(40);
+    if (!customer.name || !customer.room) {
+      alert("Mohon isi Nama Pemesan dan Nomor Kamar terlebih dahulu!");
+      setActiveTab("checkout");
+      return;
+    }
+
+    const waMessage = `*BELI CEPAT - ZADESHAN STORE*\n\n` +
+      `👤 Nama: ${customer.name}\n` +
+      `🏨 Hotel: ${customer.hotel}\n` +
+      `🚪 Kamar: ${customer.room}\n` +
+      `💳 Pembayaran: ${customer.payment}\n\n` +
+      `*Produk Pesanan:*\n` +
+      `- ${product.name} (1 ${product.unit}) = SAR ${product.price}\n\n` +
+      `*TOTAL: SAR ${product.price}*\n\nMohon segera diantar ke kamar hotel. Terima kasih!`;
+
+    const sellerWhatsApp = "6285765813040";
+    window.open(`https://wa.me/${sellerWhatsApp}?text=${encodeURIComponent(waMessage)}`, "_blank");
+  };
+
   const handleCheckout = () => {
     triggerHaptic(50);
-    if (!customer.name || !customer.hotel || !customer.room) {
-      return alert("Mohon lengkapi Nama Pemesan, Nama Hotel, dan Nomor Kamar!");
+    if (!customer.name || !customer.room) {
+      return alert("Mohon lengkapi Nama Pemesan dan Nomor Kamar!");
     }
     if (cart.length === 0) return alert("Keranjang belanja masih kosong!");
 
@@ -115,9 +134,8 @@ export default function Home() {
       cart.map(i => `- ${i.name} x${i.qty} = SAR ${i.price * i.qty}`).join("\n") +
       `\n\n*TOTAL: SAR ${totalPrice}*\n\nMohon segera diproses pengirimannya ke kamar hotel. Terima kasih!`;
 
-    const encodedMessage = encodeURIComponent(waMessage);
     const sellerWhatsApp = "6285765813040"; 
-    window.open(`https://wa.me/${sellerWhatsApp}?text=${encodedMessage}`, "_blank");
+    window.open(`https://wa.me/${sellerWhatsApp}?text=${encodeURIComponent(waMessage)}`, "_blank");
   };
 
   return (
@@ -154,13 +172,13 @@ export default function Home() {
           <>
             <div className="flex justify-between items-end">
               <div>
-                <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">Showroom Makkah</span>
+                <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">⚡ Antar ke Kamar Makkah</span>
                 <h2 className="text-base font-black tracking-tight text-white">Featured Showcase</h2>
               </div>
               <span className="text-[10px] text-neutral-400 font-mono">Geser Getar ⇄</span>
             </div>
 
-            {/* 3D CAROUSEL SLIDER DENGAN TOUCH HAPTIC */}
+            {/* 3D CAROUSEL SLIDER */}
             <div 
               ref={sliderRef}
               onScroll={handleScroll}
@@ -181,8 +199,10 @@ export default function Home() {
                       }`}
                     >
                       <img src={p.image} alt={p.name} className="w-full h-full object-cover pointer-events-none" />
+                      <div className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                        {p.badge}
+                      </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-3.5">
-                        <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">✨ Item #{idx+1}</span>
                         <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
                         <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price} <span className="text-[9px] font-normal text-neutral-400">/{p.unit}</span></p>
                       </div>
@@ -205,21 +225,31 @@ export default function Home() {
               ))}
             </div>
 
-            {/* PANEL DETAIL & BELI */}
+            {/* PANEL DETAIL & TOMBOL BELI + BELI CEPAT 1-KLIK */}
             {activeProduct && (
-              <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-1">
-                    <span>🏷️</span> Selected Item
-                  </span>
-                  <h4 className="font-bold text-xs text-white truncate">{activeProduct.name}</h4>
-                  <p className="text-[11px] text-emerald-400 font-black mt-0.5">SAR {activeProduct.price} <span className="text-[9px] font-normal text-neutral-400">/{activeProduct.unit}</span></p>
+              <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-1">
+                      <span>🏷️</span> {activeProduct.badge}
+                    </span>
+                    <h4 className="font-bold text-xs text-white truncate">{activeProduct.name}</h4>
+                    <p className="text-[11px] text-emerald-400 font-black mt-0.5">SAR {activeProduct.price} <span className="text-[9px] font-normal text-neutral-400">/{activeProduct.unit}</span></p>
+                  </div>
+                  <button
+                    onClick={() => addToCart(activeProduct)}
+                    className="bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-white font-bold text-xs px-3 py-2.5 rounded-xl transition flex items-center gap-1 flex-shrink-0 border border-white/10"
+                  >
+                    <span>🛒</span> + Tas
+                  </button>
                 </div>
+
+                {/* TOMBOL SAT-SET: BELI CEPAT WA 1-KLIK */}
                 <button
-                  onClick={() => addToCart(activeProduct)}
-                  className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-1.5 flex-shrink-0"
+                  onClick={() => handleInstantBuy(activeProduct)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(16,185,129,0.5)] text-xs flex items-center justify-center gap-1.5"
                 >
-                  <span>🛒</span> + Beli
+                  <span>⚡ Beli Cepat via WhatsApp (SAR {activeProduct.price})</span>
                 </button>
               </div>
             )}
@@ -260,56 +290,48 @@ export default function Home() {
                 onClick={() => { triggerHaptic(30); setActiveTab("checkout"); }}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition text-xs shadow-[0_0_15px_rgba(16,185,129,0.5)]"
               >
-                Lanjut ke Pengiriman Hotel →
+                Lanjut ke Pengiriman Kamar →
               </button>
             )}
           </div>
         )}
 
-        {/* TAB 3: CHECKOUT / HOTEL */}
+        {/* TAB 3: CHECKOUT / HOTEL (TANPA PILIH HOTEL, TINGGAL NAMA & NO KAMAR) */}
         {activeTab === "checkout" && (
           <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl space-y-3">
             <h3 className="font-extrabold text-sm text-white flex items-center gap-2 pb-2 border-b border-white/10">
-              <span>🏨</span> Konfirmasi Kamar Hotel Makkah
+              <span>🏨</span> Data Pengiriman Kamar Hotel
             </h3>
-            <div className="space-y-2.5 text-xs">
+            
+            <div className="space-y-3 text-xs">
               <div>
                 <label className="block text-neutral-400 mb-1">Nama Pemesan</label>
                 <input
                   type="text"
-                  placeholder="Contoh: H. Nazlan"
+                  placeholder="Contoh: H. Nazlan Hafidz"
                   value={customer.name}
                   onChange={e => setCustomer({ ...customer, name: e.target.value })}
-                  className="w-full p-2.5 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500"
+                  className="w-full p-3 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500 text-sm"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-neutral-400 mb-1">Nama Hotel</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Hilton"
-                    value={customer.hotel}
-                    onChange={e => setCustomer({ ...customer, hotel: e.target.value })}
-                    className="w-full p-2.5 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-neutral-400 mb-1">Nomor Kamar</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: 504"
-                    value={customer.room}
-                    onChange={e => setCustomer({ ...customer, room: e.target.value })}
-                    className="w-full p-2.5 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500"
-                  />
-                </div>
+
+              <div>
+                <label className="block text-neutral-400 mb-1">Nomor Kamar Hotel</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Kamar 504"
+                  value={customer.room}
+                  onChange={e => setCustomer({ ...customer, room: e.target.value })}
+                  className="w-full p-3 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500 text-sm font-bold text-emerald-400"
+                />
+                <p className="text-[10px] text-neutral-500 mt-1">*(Hotel sudah otomatis diset untuk rombongan Anda)</p>
               </div>
+
               <button
                 onClick={handleCheckout}
                 className="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black py-3.5 rounded-xl transition shadow-[0_0_20px_rgba(16,185,129,0.5)] text-xs tracking-wide flex items-center justify-center gap-1.5"
               >
-                <span>💬 Pesan via WhatsApp & Kirim ke Kamar</span>
+                <span>💬 Kirim Semua Pesanan via WhatsApp</span>
               </button>
             </div>
           </div>

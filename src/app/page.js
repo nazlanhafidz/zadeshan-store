@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const DEFAULT_PRODUCTS = [
   { id: 1, name: "Kurma Ajwa Premium (1kg)", price: 80, unit: "Kg", image: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=800", desc: "Kurma Ajwa asli Madinah pilihan terbaik." },
@@ -13,6 +14,7 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cart, setCart] = useState([]);
+  const [activeTab, setActiveTab] = useState("home"); // "home", "cart", "checkout", "admin"
   const [customer, setCustomer] = useState({ name: "", hotel: "", room: "", payment: "COD (Bayar di Kamar Hotel)" });
 
   useEffect(() => {
@@ -79,7 +81,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white font-sans flex flex-col justify-between relative overflow-x-hidden select-none">
+    <div className="min-h-screen bg-neutral-950 text-white font-sans flex flex-col justify-between relative overflow-x-hidden select-none pb-28">
       
       {/* BACKGROUND BLUR CINEMATIC */}
       {activeProduct && (
@@ -104,150 +106,220 @@ export default function Home() {
         </div>
       </header>
 
-      {/* MAIN CONTAINER */}
+      {/* MAIN CONTENT BERDASARKAN TAB AKTIF */}
       <main className="relative z-20 flex-1 max-w-md mx-auto w-full px-3 py-4 flex flex-col space-y-4">
         
-        {/* TITLE */}
-        <div className="flex justify-between items-end">
-          <div>
-            <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">Showroom Makkah</span>
-            <h2 className="text-base font-black tracking-tight text-white">Featured Showcase</h2>
-          </div>
-          <span className="text-[10px] text-neutral-400 font-mono">Geser Mulus ⇄</span>
-        </div>
-
-        {/* 3D CAROUSEL SLIDER (DIUBAH MENJADI LICIN & BEBAS TANPA SNAP YANG KAKU) */}
-        <div className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x">
-          <div className="flex gap-3 w-max px-1">
-            {products.map((p, idx) => {
-              const isActive = currentIndex === idx;
-              return (
-                <div 
-                  key={p.id}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`w-56 h-64 rounded-2xl overflow-hidden relative transition-all duration-300 cursor-pointer flex-shrink-0 ${
-                    isActive 
-                      ? "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.4)] scale-100 opacity-100" 
-                      : "border border-white/10 scale-95 opacity-60 hover:opacity-90"
-                  }`}
-                >
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover pointer-events-none" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-3.5">
-                    <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">✨ Item #{idx+1}</span>
-                    <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
-                    <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price} <span className="text-[9px] font-normal text-neutral-400">/{p.unit}</span></p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* INDIKATOR TITIK DOTS */}
-        <div className="flex justify-center items-center gap-1.5 -mt-2">
-          {products.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`h-1.5 transition-all duration-300 rounded-full ${
-                currentIndex === idx ? "w-6 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "w-1.5 bg-white/20"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* PANEL DETAIL PRODUK AKTIF & TOMBOL BELI */}
-        {activeProduct && (
-          <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-1">
-                <span>🏷️</span> Selected Item
-              </span>
-              <h4 className="font-bold text-xs text-white truncate">{activeProduct.name}</h4>
-              <p className="text-[11px] text-emerald-400 font-black mt-0.5">SAR {activeProduct.price} <span className="text-[9px] font-normal text-neutral-400">/{activeProduct.unit}</span></p>
+        {/* TAB 1: HOME / SHOWCASE */}
+        {activeTab === "home" && (
+          <>
+            <div className="flex justify-between items-end">
+              <div>
+                <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">Showroom Makkah</span>
+                <h2 className="text-base font-black tracking-tight text-white">Featured Showcase</h2>
+              </div>
+              <span className="text-[10px] text-neutral-400 font-mono">Geser Mulus ⇄</span>
             </div>
-            <button
-              onClick={() => addToCart(activeProduct)}
-              className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-1.5 flex-shrink-0"
-            >
-              <span>🛒</span> + Beli
-            </button>
+
+            {/* 3D CAROUSEL SLIDER */}
+            <div className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x">
+              <div className="flex gap-3 w-max px-1">
+                {products.map((p, idx) => {
+                  const isActive = currentIndex === idx;
+                  return (
+                    <div 
+                      key={p.id}
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`w-56 h-64 rounded-2xl overflow-hidden relative transition-all duration-300 cursor-pointer flex-shrink-0 ${
+                        isActive 
+                          ? "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.4)] scale-100 opacity-100" 
+                          : "border border-white/10 scale-95 opacity-60 hover:opacity-90"
+                      }`}
+                    >
+                      <img src={p.image} alt={p.name} className="w-full h-full object-cover pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-3.5">
+                        <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">✨ Item #{idx+1}</span>
+                        <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
+                        <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price} <span className="text-[9px] font-normal text-neutral-400">/{p.unit}</span></p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* INDIKATOR TITIK DOTS */}
+            <div className="flex justify-center items-center gap-1.5 -mt-2">
+              {products.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`h-1.5 transition-all duration-300 rounded-full ${
+                    currentIndex === idx ? "w-6 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "w-2 bg-white/20"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* PANEL DETAIL & BELI */}
+            {activeProduct && (
+              <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-1">
+                    <span>🏷️</span> Selected Item
+                  </span>
+                  <h4 className="font-bold text-xs text-white truncate">{activeProduct.name}</h4>
+                  <p className="text-[11px] text-emerald-400 font-black mt-0.5">SAR {activeProduct.price} <span className="text-[9px] font-normal text-neutral-400">/{activeProduct.unit}</span></p>
+                </div>
+                <button
+                  onClick={() => addToCart(activeProduct)}
+                  className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-1.5 flex-shrink-0"
+                >
+                  <span>🛒</span> + Beli
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* TAB 2: KERANJANG */}
+        {activeTab === "cart" && (
+          <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl space-y-3">
+            <h3 className="font-extrabold text-sm text-white flex items-center gap-2 pb-2 border-b border-white/10">
+              <span>🛒</span> Rincian Tas Belanja ({totalItemsCount} item)
+            </h3>
+            {cart.length === 0 ? (
+              <p className="text-xs text-neutral-400 text-center py-8">Tas belanja masih kosong. Yuk pilih produk di showcase!</p>
+            ) : (
+              <div className="space-y-2.5 max-h-72 overflow-y-auto no-scrollbar">
+                {cart.map(item => (
+                  <div key={item.id} className="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-white/5 text-xs">
+                    <div className="pr-2 min-w-0 flex-1">
+                      <h4 className="font-bold text-white truncate text-xs">{item.name}</h4>
+                      <p className="text-emerald-400 font-bold text-[11px]">SAR {item.price * item.qty}</p>
+                    </div>
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 bg-neutral-800 rounded-md font-bold text-neutral-300 flex items-center justify-center">-</button>
+                      <span className="font-bold text-white w-5 text-center">{item.qty}</span>
+                      <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 bg-neutral-800 rounded-md font-bold text-neutral-300 flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="pt-3 border-t border-white/10 flex justify-between items-center font-black text-sm">
+              <span>Total:</span>
+              <span className="text-emerald-400">SAR {totalPrice}</span>
+            </div>
+            {cart.length > 0 && (
+              <button
+                onClick={() => setActiveTab("checkout")}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition text-xs shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+              >
+                Lanjut ke Pengiriman Hotel →
+              </button>
+            )}
           </div>
         )}
 
-        {/* BOX KERANJANG BELANJA */}
-        <div className="bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3.5 shadow-xl space-y-2.5">
-          <div className="flex justify-between items-center text-xs pb-2 border-b border-white/10">
-            <span className="font-extrabold text-white flex items-center gap-1.5">
-              <span>🛒</span> Rincian Keranjang ({totalItemsCount} item)
-            </span>
-            <span className="font-black text-emerald-400">SAR {totalPrice}</span>
-          </div>
-
-          {cart.length === 0 ? (
-            <p className="text-[11px] text-neutral-400 text-center py-2">Keranjang masih kosong. Pilih produk dan klik "+ Beli".</p>
-          ) : (
-            <div className="space-y-2 max-h-36 overflow-y-auto no-scrollbar">
-              {cart.map(item => (
-                <div key={item.id} className="flex justify-between items-center bg-black/40 p-2 rounded-xl border border-white/5 text-xs">
-                  <div className="pr-2 min-w-0 flex-1">
-                    <h4 className="font-bold text-white text-[11px] truncate">{item.name}</h4>
-                    <p className="text-emerald-400 text-[10px] font-bold">SAR {item.price * item.qty}</p>
-                  </div>
-                  <div className="flex items-center space-x-1.5 flex-shrink-0">
-                    <button onClick={() => updateQty(item.id, -1)} className="w-5 h-5 bg-neutral-800 rounded font-bold text-neutral-300 text-xs flex items-center justify-center">-</button>
-                    <span className="font-bold text-white w-4 text-center text-xs">{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, 1)} className="w-5 h-5 bg-neutral-800 rounded font-bold text-neutral-300 text-xs flex items-center justify-center">+</button>
-                  </div>
+        {/* TAB 3: CHECKOUT / HOTEL */}
+        {activeTab === "checkout" && (
+          <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl space-y-3">
+            <h3 className="font-extrabold text-sm text-white flex items-center gap-2 pb-2 border-b border-white/10">
+              <span>🏨</span> Konfirmasi Kamar Hotel Makkah
+            </h3>
+            <div className="space-y-2.5 text-xs">
+              <div>
+                <label className="block text-neutral-400 mb-1">Nama Pemesan</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: H. Nazlan"
+                  value={customer.name}
+                  onChange={e => setCustomer({ ...customer, name: e.target.value })}
+                  className="w-full p-2.5 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-neutral-400 mb-1">Nama Hotel</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Hilton"
+                    value={customer.hotel}
+                    onChange={e => setCustomer({ ...customer, hotel: e.target.value })}
+                    className="w-full p-2.5 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500"
+                  />
                 </div>
-              ))}
+                <div>
+                  <label className="block text-neutral-400 mb-1">Nomor Kamar</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: 504"
+                    value={customer.room}
+                    onChange={e => setCustomer({ ...customer, room: e.target.value })}
+                    className="w-full p-2.5 bg-neutral-950 border border-white/10 rounded-xl text-white focus:outline-emerald-500"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleCheckout}
+                className="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black py-3.5 rounded-xl transition shadow-[0_0_20px_rgba(16,185,129,0.5)] text-xs tracking-wide flex items-center justify-center gap-1.5"
+              >
+                <span>💬 Pesan via WhatsApp & Kirim ke Kamar</span>
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
       </main>
 
-      {/* FOOTER: CHECKOUT HOTEL */}
-      <footer className="relative z-20 bg-neutral-950/95 backdrop-blur-2xl border-t border-white/10 px-4 py-4">
-        <div className="max-w-md mx-auto space-y-2.5">
-          <div className="flex justify-between items-center text-xs">
-            <span className="font-extrabold text-white flex items-center gap-1">
-              <span>🏨</span> Konfirmasi Kamar Hotel Makkah
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <input
-              type="text"
-              placeholder="Nama Pemesan"
-              value={customer.name}
-              onChange={e => setCustomer({ ...customer, name: e.target.value })}
-              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500 focus:border-emerald-500"
-            />
-            <input
-              type="text"
-              placeholder="Nama Hotel"
-              value={customer.hotel}
-              onChange={e => setCustomer({ ...customer, hotel: e.target.value })}
-              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500 focus:border-emerald-500"
-            />
-            <input
-              type="text"
-              placeholder="No Kamar"
-              value={customer.room}
-              onChange={e => setCustomer({ ...customer, room: e.target.value })}
-              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500 focus:border-emerald-500"
-            />
-          </div>
-
+      {/* FLOATING BOTTOM NAVIGATION BAR (MENYERUPAI REFERENSI GAMBAR ANDA) */}
+      <nav className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[92%] max-w-sm">
+        <div className="bg-neutral-900/90 backdrop-blur-2xl border border-emerald-500/30 rounded-full px-4 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex justify-between items-center relative">
+          
+          {/* Tombol 1: Home / Showcase */}
           <button
-            onClick={handleCheckout}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black py-3 rounded-xl transition shadow-[0_0_20px_rgba(16,185,129,0.5)] text-xs tracking-wide flex items-center justify-center gap-1.5"
+            onClick={() => setActiveTab("home")}
+            className={`flex flex-col items-center transition-all ${activeTab === "home" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
           >
-            <span>💬 Pesan via WhatsApp & Kirim ke Kamar</span>
+            <span className="text-base">✨</span>
+            <span className="text-[9px] font-bold mt-0.5">Showcase</span>
           </button>
+
+          {/* Tombol 2: Keranjang / Bag */}
+          <button
+            onClick={() => setActiveTab("cart")}
+            className={`flex flex-col items-center transition-all relative ${activeTab === "cart" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
+          >
+            <span className="text-base">🛒</span>
+            <span className="text-[9px] font-bold mt-0.5">Tas</span>
+            {totalItemsCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-black text-[9px] font-black rounded-full flex items-center justify-center shadow">
+                {totalItemsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Tombol 3: Hotel / Checkout (Floating Center Notch Effect) */}
+          <button
+            onClick={() => setActiveTab("checkout")}
+            className={`flex flex-col items-center transition-all ${activeTab === "checkout" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
+          >
+            <span className="text-base">🏨</span>
+            <span className="text-[9px] font-bold mt-0.5">Kamar</span>
+          </button>
+
+          {/* Tombol 4: Admin Panel */}
+          <Link
+            href="/admin"
+            className="flex flex-col items-center transition-all text-neutral-400 hover:text-white"
+          >
+            <span className="text-base">⚙️</span>
+            <span className="text-[9px] font-bold mt-0.5">Admin</span>
+          </Link>
+
         </div>
-      </footer>
+      </nav>
+
     </div>
   );
 }

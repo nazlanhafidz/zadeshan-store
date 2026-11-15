@@ -78,95 +78,93 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white font-sans flex flex-col justify-between relative overflow-hidden select-none">
+    <div className="min-h-screen bg-neutral-950 text-white font-sans flex flex-col justify-between relative overflow-x-hidden select-none">
       
-      {/* 1. BACKGROUND DENGAN EFEK BLUR MENDALAM (DEPTH OF FIELD) */}
+      {/* BACKGROUND BLUR CINEMATIC */}
       {activeProduct && (
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 bg-neutral-950/75 z-10 backdrop-blur-3xl"></div>
+          <div className="absolute inset-0 bg-neutral-950/80 z-10 backdrop-blur-3xl"></div>
           <img 
             src={activeProduct.image} 
-            alt="Blur Background" 
-            className="w-full h-full object-cover filter blur-3xl opacity-40 scale-125 transition-all duration-700" 
+            alt="Blur BG" 
+            className="w-full h-full object-cover filter blur-3xl opacity-30 scale-125 transition-all duration-700" 
           />
         </div>
       )}
 
-      {/* 2. HEADER MINIMALIS MOBILE */}
-      <header className="relative z-20 px-4 py-3 flex justify-between items-center border-b border-white/10 bg-black/30 backdrop-blur-md">
-        <div>
-          <h1 className="text-xs font-black tracking-widest flex items-center gap-1.5">
-            <span>🕋</span> ZADESHAN.STORE
-          </h1>
-          <p className="text-[8px] text-emerald-400 font-mono tracking-wider">MAKKAH SHOWCASE</p>
-        </div>
-        <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+      {/* HEADER */}
+      <header className="relative z-20 px-4 py-3 flex justify-between items-center border-b border-white/10 bg-black/40 backdrop-blur-md">
+        <h1 className="text-xs font-black tracking-widest flex items-center gap-1.5">
+          <span>🕋</span> ZADESHAN.STORE
+        </h1>
+        <div className="text-[10px] text-emerald-400 font-mono bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
           Bag ({cart.reduce((a,b)=>a+b.qty,0)})
-        </span>
+        </div>
       </header>
 
-      {/* 3. BAGIAN UTAMA: TRY THE LOOK / 3D MOBILE SLIDER */}
-      <main className="relative z-20 flex-1 max-w-md mx-auto w-full px-3 py-4 flex flex-col justify-between">
+      {/* MAIN CONTAINER */}
+      <main className="relative z-20 flex-1 max-w-md mx-auto w-full px-3 py-4 flex flex-col space-y-4">
         
-        {/* Judul Atas */}
-        <div>
-          <h2 className="text-lg font-black tracking-tight text-white">Try the Look.</h2>
-          <p className="text-[11px] text-neutral-400 mt-0.5">Geser produk untuk melihat detail dan suasana.</p>
+        {/* TITLE & SUBTITLE */}
+        <div className="flex justify-between items-end">
+          <div>
+            <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">Showroom Makkah</span>
+            <h2 className="text-base font-black tracking-tight text-white">Featured Showcase</h2>
+          </div>
+          <span className="text-[10px] text-neutral-400 font-mono">Swipe →</span>
         </div>
 
-        {/* CONTAINER 3D SLIDER (FOTO UTAMA BESAR DI TENGAH DENGAN EFEK GESER) */}
-        <div className="relative w-full my-3">
-          <div className="w-full overflow-x-auto pb-4 pt-2 no-scrollbar cursor-grab active:cursor-grabbing snap-x snap-mandatory">
-            <div className="flex gap-3 w-max px-2">
-              {products.map((p, idx) => {
-                const isActive = currentIndex === idx;
-                return (
-                  <div 
-                    key={p.id}
-                    onClick={() => setCurrentIndex(idx)}
-                    className={`snap-center w-56 h-80 rounded-3xl overflow-hidden relative shadow-2xl transition-all duration-500 transform ${
-                      isActive 
-                        ? "scale-100 border-2 border-white/40 opacity-100 shadow-emerald-950" 
-                        : "scale-90 border border-white/10 opacity-50 hover:opacity-80"
-                    }`}
-                  >
-                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4">
-                      <span className="text-[9px] text-emerald-400 font-mono uppercase">Item #{idx+1}</span>
-                      <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
-                      <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price}</p>
-                    </div>
+        {/* 3D CAROUSEL SLIDER (UKURAN COMPACT & EFEK NEON GLOW) */}
+        <div className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar cursor-grab active:cursor-grabbing snap-x snap-mandatory">
+          <div className="flex gap-3 w-max px-1">
+            {products.map((p, idx) => {
+              const isActive = currentIndex === idx;
+              return (
+                <div 
+                  key={p.id}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`snap-center w-64 h-72 rounded-2xl overflow-hidden relative transition-all duration-500 cursor-pointer ${
+                    isActive 
+                      ? "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.4)] scale-100 opacity-100" 
+                      : "border border-white/10 scale-95 opacity-50 hover:opacity-80"
+                  }`}
+                >
+                  <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-4">
+                    <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">Item #{idx+1}</span>
+                    <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
+                    <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price} <span className="text-[9px] font-normal text-neutral-400">/{p.unit}</span></p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Indikator Garis Slider Bawah (Pagination Line) */}
-          <div className="flex justify-center items-center gap-1.5 mt-1">
-            {products.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                className={`h-1 transition-all duration-300 rounded-full ${
-                  currentIndex === idx ? "w-8 bg-white" : "w-2 bg-white/30"
-                }`}
-              />
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* PANEL DETAIL AKTIF & TOMBOL BELI */}
+        {/* INDIKATOR GARIS NEON */}
+        <div className="flex justify-center items-center gap-1.5 -mt-2">
+          {products.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`h-1 transition-all duration-300 rounded-full ${
+                currentIndex === idx ? "w-8 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "w-2 bg-white/20"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* PANEL DETAIL PRODUK AKTIF & TOMBOL BELI */}
         {activeProduct && (
-          <div className="bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3.5 shadow-xl flex items-center justify-between gap-3">
+          <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <span className="text-[9px] text-emerald-400 font-mono uppercase">Selected Item</span>
+              <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">Selected Item</span>
               <h4 className="font-bold text-xs text-white truncate">{activeProduct.name}</h4>
               <p className="text-[11px] text-emerald-400 font-black mt-0.5">SAR {activeProduct.price} <span className="text-[9px] font-normal text-neutral-400">/{activeProduct.unit}</span></p>
             </div>
             <button
               onClick={() => addToCart(activeProduct)}
-              className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-950 flex-shrink-0"
+              className="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(16,185,129,0.5)] flex-shrink-0"
             >
               + Beli
             </button>
@@ -175,13 +173,14 @@ export default function Home() {
 
       </main>
 
-      {/* 4. FOOTER: CHECKOUT HOTEL */}
-      <footer className="relative z-20 bg-neutral-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-4">
+      {/* FOOTER: CHECKOUT HOTEL */}
+      <footer className="relative z-20 bg-neutral-950/95 backdrop-blur-2xl border-t border-white/10 px-4 py-4">
         <div className="max-w-md mx-auto space-y-2.5">
           <div className="flex justify-between items-center text-xs">
             <span className="font-extrabold text-white flex items-center gap-1">
               <span>🛒</span> Total Belanja: <strong className="text-emerald-400">SAR {totalPrice}</strong>
             </span>
+            <span className="text-[10px] text-neutral-400">{cart.reduce((a,b)=>a+b.qty,0)} item</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -190,27 +189,27 @@ export default function Home() {
               placeholder="Nama Pemesan"
               value={customer.name}
               onChange={e => setCustomer({ ...customer, name: e.target.value })}
-              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500"
+              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500 focus:border-emerald-500"
             />
             <input
               type="text"
               placeholder="Nama Hotel"
               value={customer.hotel}
               onChange={e => setCustomer({ ...customer, hotel: e.target.value })}
-              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500"
+              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500 focus:border-emerald-500"
             />
             <input
               type="text"
               placeholder="No Kamar"
               value={customer.room}
-              onChange=^{\\e => setCustomer({ ...customer, room: e.target.value })}
-              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500"
+              onChange={e => setCustomer({ ...customer, room: e.target.value })}
+              className="p-2.5 bg-neutral-900 border border-white/10 rounded-xl text-white placeholder-neutral-500 focus:outline-emerald-500 focus:border-emerald-500"
             />
           </div>
 
           <button
             onClick={handleCheckout}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black py-3 rounded-xl transition shadow-xl shadow-emerald-950 text-xs tracking-wide flex items-center justify-center gap-1.5"
+            className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black py-3 rounded-xl transition shadow-[0_0_20px_rgba(16,185,129,0.5)] text-xs tracking-wide flex items-center justify-center gap-1.5"
           >
             <span>💬 Pesan via WhatsApp & Kirim ke Kamar</span>
           </button>

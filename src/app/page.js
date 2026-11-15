@@ -18,6 +18,7 @@ export default function Home() {
   const [customer, setCustomer] = useState({ name: "", hotel: "", room: "", payment: "COD (Bayar di Kamar Hotel)" });
   
   const sliderRef = useRef(null);
+  const lastVibratedIndex = useRef(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("zadeshan_products");
@@ -27,10 +28,14 @@ export default function Home() {
 
   const activeProduct = products[currentIndex] || products[0];
 
-  // Fungsi haptic feedback getar halus ala grigi jam
-  const triggerHaptic = () => {
-    if (typeof window !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate(12); // Durasi 12ms (getar sangat singkat dan renyah)
+  // Fungsi haptic feedback yang lebih kuat & stabil di HP
+  const triggerHaptic = (intensity = 15) => {
+    try {
+      if (typeof window !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate(intensity);
+      }
+    } catch (e) {
+      console.log("Haptic not supported");
     }
   };
 
@@ -41,13 +46,16 @@ export default function Home() {
     const index = Math.round(scrollLeft / cardWidth);
     if (index >= 0 && index < products.length && index !== currentIndex) {
       setCurrentIndex(index);
-      triggerHaptic(); // Getar aktif saat produk bergeser otomatis
+      if (lastVibratedIndex.current !== index) {
+        triggerHaptic(20); // Getar grigi saat pindah produk
+        lastVibratedIndex.current = index;
+      }
     }
   };
 
   const scrollToCard = (index) => {
     setCurrentIndex(index);
-    triggerHaptic();
+    triggerHaptic(25);
     if (sliderRef.current) {
       const cardWidth = 240;
       sliderRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
@@ -55,7 +63,7 @@ export default function Home() {
   };
 
   const addToCart = (product) => {
-    triggerHaptic();
+    triggerHaptic(40); // Getar lebih terasa saat klik Beli
     const existing = cart.find(item => item.id === product.id);
     if (existing) {
       setCart(cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
@@ -65,7 +73,7 @@ export default function Home() {
   };
 
   const updateQty = (id, delta) => {
-    triggerHaptic();
+    triggerHaptic(20);
     setCart(cart.map(item => {
       if (item.id === id) {
         const newQty = item.qty + delta;
@@ -79,6 +87,7 @@ export default function Home() {
   const totalItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
   const handleCheckout = () => {
+    triggerHaptic(50);
     if (!customer.name || !customer.hotel || !customer.room) {
       return alert("Mohon lengkapi Nama Pemesan, Nama Hotel, dan Nomor Kamar!");
     }
@@ -151,10 +160,11 @@ export default function Home() {
               <span className="text-[10px] text-neutral-400 font-mono">Geser Getar ⇄</span>
             </div>
 
-            {/* 3D CAROUSEL SLIDER DENGAN HAPTIC FEEDBACK */}
+            {/* 3D CAROUSEL SLIDER DENGAN TOUCH HAPTIC */}
             <div 
               ref={sliderRef}
               onScroll={handleScroll}
+              onTouchStart={() => triggerHaptic(8)}
               className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x scroll-smooth"
             >
               <div className="flex gap-4 w-max px-2">
@@ -247,7 +257,7 @@ export default function Home() {
             </div>
             {cart.length > 0 && (
               <button
-                onClick={() => setActiveTab("checkout")}
+                onClick={() => { triggerHaptic(30); setActiveTab("checkout"); }}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl transition text-xs shadow-[0_0_15px_rgba(16,185,129,0.5)]"
               >
                 Lanjut ke Pengiriman Hotel →
@@ -312,7 +322,7 @@ export default function Home() {
         <div className="bg-neutral-900/90 backdrop-blur-2xl border border-emerald-500/30 rounded-full px-4 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex justify-between items-center relative">
           
           <button
-            onClick={() => { triggerHaptic(); setActiveTab("home"); }}
+            onClick={() => { triggerHaptic(15); setActiveTab("home"); }}
             className={`flex flex-col items-center transition-all ${activeTab === "home" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
           >
             <span className="text-base">✨</span>
@@ -320,7 +330,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => { triggerHaptic(); setActiveTab("cart"); }}
+            onClick={() => { triggerHaptic(15); setActiveTab("cart"); }}
             className={`flex flex-col items-center transition-all relative ${activeTab === "cart" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
           >
             <span className="text-base">🛒</span>
@@ -333,7 +343,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => { triggerHaptic(); setActiveTab("checkout"); }}
+            onClick={() => { triggerHaptic(15); setActiveTab("checkout"); }}
             className={`flex flex-col items-center transition-all ${activeTab === "checkout" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
           >
             <span className="text-base">🏨</span>
@@ -342,7 +352,7 @@ export default function Home() {
 
           <Link
             href="/admin"
-            onClick={triggerHaptic}
+            onClick={() => triggerHaptic(15)}
             className="flex flex-col items-center transition-all text-neutral-400 hover:text-white"
           >
             <span className="text-base">⚙️</span>

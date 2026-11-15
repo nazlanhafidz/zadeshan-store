@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 const DEFAULT_PRODUCTS = [
@@ -14,8 +14,10 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cart, setCart] = useState([]);
-  const [activeTab, setActiveTab] = useState("home"); // "home", "cart", "checkout", "admin"
+  const [activeTab, setActiveTab] = useState("home");
   const [customer, setCustomer] = useState({ name: "", hotel: "", room: "", payment: "COD (Bayar di Kamar Hotel)" });
+  
+  const sliderRef = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("zadeshan_products");
@@ -24,6 +26,25 @@ export default function Home() {
   }, []);
 
   const activeProduct = products[currentIndex] || products[0];
+
+  // Fungsi saat slider digeser untuk mendeteksi posisi produk aktif secara akurat
+  const handleScroll = () => {
+    if (!sliderRef.current) return;
+    const scrollLeft = sliderRef.current.scrollLeft;
+    const cardWidth = 240; // perkiraan lebar card (w-56 / 224px + gap 16px)
+    const index = Math.round(scrollLeft / cardWidth);
+    if (index >= 0 && index < products.length && index !== currentIndex) {
+      setCurrentIndex(index);
+    }
+  };
+
+  const scrollToCard = (index) => {
+    setCurrentIndex(index);
+    if (sliderRef.current) {
+      const cardWidth = 240;
+      sliderRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
+    }
+  };
 
   const addToCart = (product) => {
     const existing = cart.find(item => item.id === product.id);
@@ -106,7 +127,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* MAIN CONTENT BERDASARKAN TAB AKTIF */}
+      {/* MAIN CONTENT */}
       <main className="relative z-20 flex-1 max-w-md mx-auto w-full px-3 py-4 flex flex-col space-y-4">
         
         {/* TAB 1: HOME / SHOWCASE */}
@@ -120,19 +141,23 @@ export default function Home() {
               <span className="text-[10px] text-neutral-400 font-mono">Geser Mulus ⇄</span>
             </div>
 
-            {/* 3D CAROUSEL SLIDER */}
-            <div className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x">
-              <div className="flex gap-3 w-max px-1">
+            {/* 3D CAROUSEL SLIDER DENGAN SCROLL LISTENER */}
+            <div 
+              ref={sliderRef}
+              onScroll={handleScroll}
+              className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x scroll-smooth"
+            >
+              <div className="flex gap-4 w-max px-2">
                 {products.map((p, idx) => {
                   const isActive = currentIndex === idx;
                   return (
                     <div 
                       key={p.id}
-                      onClick={() => setCurrentIndex(idx)}
+                      onClick={() => scrollToCard(idx)}
                       className={`w-56 h-64 rounded-2xl overflow-hidden relative transition-all duration-300 cursor-pointer flex-shrink-0 ${
                         isActive 
-                          ? "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.4)] scale-100 opacity-100" 
-                          : "border border-white/10 scale-95 opacity-60 hover:opacity-90"
+                          ? "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.5)] scale-100 opacity-100" 
+                          : "border border-white/10 scale-95 opacity-50 hover:opacity-80"
                       }`}
                     >
                       <img src={p.image} alt={p.name} className="w-full h-full object-cover pointer-events-none" />
@@ -147,20 +172,20 @@ export default function Home() {
               </div>
             </div>
 
-            {/* INDIKATOR TITIK DOTS */}
+            {/* INDIKATOR GARIS DOTS OTOMATIS */}
             <div className="flex justify-center items-center gap-1.5 -mt-2">
               {products.map((_, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setCurrentIndex(idx)}
+                  onClick={() => scrollToCard(idx)}
                   className={`h-1.5 transition-all duration-300 rounded-full ${
-                    currentIndex === idx ? "w-6 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "w-2 bg-white/20"
+                    currentIndex === idx ? "w-6 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "w-1.5 bg-white/20"
                   }`}
                 />
               ))}
             </div>
 
-            {/* PANEL DETAIL & BELI */}
+            {/* PANEL DETAIL & BELI (LANGSUNG MENYESUAIKAN PRODUK AKTIF) */}
             {activeProduct && (
               <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -272,11 +297,10 @@ export default function Home() {
 
       </main>
 
-      {/* FLOATING BOTTOM NAVIGATION BAR (MENYERUPAI REFERENSI GAMBAR ANDA) */}
+      {/* FLOATING BOTTOM NAVIGATION BAR */}
       <nav className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[92%] max-w-sm">
         <div className="bg-neutral-900/90 backdrop-blur-2xl border border-emerald-500/30 rounded-full px-4 py-2.5 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex justify-between items-center relative">
           
-          {/* Tombol 1: Home / Showcase */}
           <button
             onClick={() => setActiveTab("home")}
             className={`flex flex-col items-center transition-all ${activeTab === "home" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
@@ -285,7 +309,6 @@ export default function Home() {
             <span className="text-[9px] font-bold mt-0.5">Showcase</span>
           </button>
 
-          {/* Tombol 2: Keranjang / Bag */}
           <button
             onClick={() => setActiveTab("cart")}
             className={`flex flex-col items-center transition-all relative ${activeTab === "cart" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
@@ -299,7 +322,6 @@ export default function Home() {
             )}
           </button>
 
-          {/* Tombol 3: Hotel / Checkout (Floating Center Notch Effect) */}
           <button
             onClick={() => setActiveTab("checkout")}
             className={`flex flex-col items-center transition-all ${activeTab === "checkout" ? "text-emerald-400 scale-110" : "text-neutral-400 hover:text-white"}`}
@@ -308,7 +330,6 @@ export default function Home() {
             <span className="text-[9px] font-bold mt-0.5">Kamar</span>
           </button>
 
-          {/* Tombol 4: Admin Panel */}
           <Link
             href="/admin"
             className="flex flex-col items-center transition-all text-neutral-400 hover:text-white"

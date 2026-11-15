@@ -113,11 +113,11 @@ export default function Home() {
             <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">Showroom Makkah</span>
             <h2 className="text-base font-black tracking-tight text-white">Featured Showcase</h2>
           </div>
-          <span className="text-[10px] text-neutral-400 font-mono">Swipe →</span>
+          <span className="text-[10px] text-neutral-400 font-mono">Geser Mulus ⇄</span>
         </div>
 
-        {/* 3D CAROUSEL SLIDER DENGAN EFEK NEON GLOW */}
-        <div className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar cursor-grab active:cursor-grabbing snap-x snap-mandatory">
+        {/* 3D CAROUSEL SLIDER (DIUBAH MENJADI LICIN & BEBAS TANPA SNAP YANG KAKU) */}
+        <div className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x">
           <div className="flex gap-3 w-max px-1">
             {products.map((p, idx) => {
               const isActive = currentIndex === idx;
@@ -125,14 +125,14 @@ export default function Home() {
                 <div 
                   key={p.id}
                   onClick={() => setCurrentIndex(idx)}
-                  className={`snap-center w-64 h-72 rounded-2xl overflow-hidden relative transition-all duration-500 cursor-pointer ${
+                  className={`w-56 h-64 rounded-2xl overflow-hidden relative transition-all duration-300 cursor-pointer flex-shrink-0 ${
                     isActive 
                       ? "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.4)] scale-100 opacity-100" 
-                      : "border border-white/10 scale-95 opacity-50 hover:opacity-80"
+                      : "border border-white/10 scale-95 opacity-60 hover:opacity-90"
                   }`}
                 >
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-4">
+                  <img src={p.image} alt={p.name} className="w-full h-full object-cover pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-3.5">
                     <span className="text-[9px] text-emerald-400 font-mono uppercase tracking-wider">✨ Item #{idx+1}</span>
                     <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
                     <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price} <span className="text-[9px] font-normal text-neutral-400">/{p.unit}</span></p>
@@ -143,20 +143,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* INDIKATOR GARIS NEON */}
+        {/* INDIKATOR TITIK DOTS */}
         <div className="flex justify-center items-center gap-1.5 -mt-2">
           {products.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`h-1 transition-all duration-300 rounded-full ${
-                currentIndex === idx ? "w-8 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "w-2 bg-white/20"
+              className={`h-1.5 transition-all duration-300 rounded-full ${
+                currentIndex === idx ? "w-6 bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" : "w-1.5 bg-white/20"
               }`}
             />
           ))}
         </div>
 
-        {/* PANEL DETAIL PRODUK AKTIF & TOMBOL BELI DENGAN IKON */}
+        {/* PANEL DETAIL PRODUK AKTIF & TOMBOL BELI */}
         {activeProduct && (
           <div className="bg-neutral-900/90 backdrop-blur-xl border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] rounded-2xl p-3.5 flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -175,7 +175,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* BOX KERANJANG BELANJA (INTERAKTIF DENGAN LIST BARANG) */}
+        {/* BOX KERANJANG BELANJA */}
         <div className="bg-neutral-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3.5 shadow-xl space-y-2.5">
           <div className="flex justify-between items-center text-xs pb-2 border-b border-white/10">
             <span className="font-extrabold text-white flex items-center gap-1.5">

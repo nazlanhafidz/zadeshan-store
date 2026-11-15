@@ -6,7 +6,7 @@ const DEFAULT_PRODUCTS = [
   { id: 1, name: "Kurma Ajwa Premium (1kg)", price: 80, unit: "Kg", badge: "🔥 Paling Dicari", image: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=800", desc: "Kurma Ajwa asli Madinah pilihan terbaik." },
   { id: 2, name: "Kacang Pistachio Shali (500g)", price: 55, unit: "Pack", badge: "⭐ Favorit Jemaah", image: "https://images.unsplash.com/photo-1515942661991-b0e657d0d018?auto=format&fit=crop&q=80&w=800", desc: "Pistachio renyah gurih kualitas ekspor." },
   { id: 3, name: "Coklat Arab Dates & Gold", price: 60, unit: "Box", badge: "🍫 Best Seller", image: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&q=80&w=800", desc: "Coklat mewah isi kurma khas Makkah." },
-  { id: 4, name: "Kacang Almond Panggang (500g)", price: 45, unit: "Pack", badge: "✨ Rekomendasi", image: "https://images.unsplash.com/photo-1508061253366-f7da158b6d46?auto=format&fit=crop&q=80&w=800", desc: "Almond panggang bernutrisi tinggi." },
+  { id: 4, name: "Kacang Almond Panggang (500g)", price: 45, unit: "Pack", image: "https://images.unsplash.com/photo-1508061253366-f7da158b6d46?auto=format&fit=crop&q=80&w=800", desc: "Almond panggang bernutrisi tinggi." },
   { id: 5, name: "Air Zamzam Asli Makkah (5L)", price: 35, unit: "Galon", badge: "🕋 Dijamin Asli", image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&q=80&w=800", desc: "Air Zamzam suci langsung dari Makkah." }
 ];
 
@@ -15,7 +15,6 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState("home");
-  // Hotel diset default otomatis satu rombongan
   const [customer, setCustomer] = useState({ name: "", hotel: "Hotel Rombongan Makkah", room: "", payment: "COD (Bayar di Kamar Hotel)" });
   
   const sliderRef = useRef(null);
@@ -40,7 +39,7 @@ export default function Home() {
   const handleScroll = () => {
     if (!sliderRef.current) return;
     const scrollLeft = sliderRef.current.scrollLeft;
-    const cardWidth = 240; 
+    const cardWidth = 220; 
     const index = Math.round(scrollLeft / cardWidth);
     if (index >= 0 && index < products.length && index !== currentIndex) {
       setCurrentIndex(index);
@@ -55,7 +54,7 @@ export default function Home() {
     setCurrentIndex(index);
     triggerHaptic(25);
     if (sliderRef.current) {
-      const cardWidth = 240;
+      const cardWidth = 220;
       sliderRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
     }
   };
@@ -167,44 +166,55 @@ export default function Home() {
       {/* MAIN CONTENT */}
       <main className="relative z-20 flex-1 max-w-md mx-auto w-full px-3 py-4 flex flex-col space-y-4">
         
-        {/* TAB 1: HOME / SHOWCASE */}
+        {/* TAB 1: HOME / SHOWCASE 3D COVER FLOW */}
         {activeTab === "home" && (
           <>
             <div className="flex justify-between items-end">
               <div>
                 <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-400">⚡ Antar ke Kamar Makkah</span>
-                <h2 className="text-base font-black tracking-tight text-white">Featured Showcase</h2>
+                <h2 className="text-base font-black tracking-tight text-white">3D Gallery Showcase</h2>
               </div>
-              <span className="text-[10px] text-neutral-400 font-mono">Geser Getar ⇄</span>
+              <span className="text-[10px] text-neutral-400 font-mono">Geser 3D ⇄</span>
             </div>
 
-            {/* 3D CAROUSEL SLIDER */}
+            {/* 3D PERSPECTIVE COVER FLOW SLIDER */}
             <div 
               ref={sliderRef}
               onScroll={handleScroll}
               onTouchStart={() => triggerHaptic(8)}
-              className="w-full overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x scroll-smooth"
+              className="w-full overflow-x-auto py-6 no-scrollbar touch-pan-x scroll-smooth perspective-[1000px]"
             >
-              <div className="flex gap-4 w-max px-2">
+              <div className="flex gap-4 w-max px-6 items-center">
                 {products.map((p, idx) => {
                   const isActive = currentIndex === idx;
+                  const distance = idx - currentIndex;
+                  // Efek miring 3D perspektif ala Cover Flow
+                  const rotateY = distance === 0 ? 0 : distance < 0 ? 25 : -25;
+                  const scale = isActive ? 1 : 0.85;
+                  const zIndex = isActive ? 20 : 10 - Math.abs(distance);
+
                   return (
                     <div 
                       key={p.id}
                       onClick={() => scrollToCard(idx)}
-                      className={`w-56 h-64 rounded-2xl overflow-hidden relative transition-all duration-300 cursor-pointer flex-shrink-0 ${
+                      style={{
+                        transform: `perspective(1000px) rotateY(${rotateY}deg) scale(${scale})`,
+                        zIndex: zIndex
+                      }}
+                      className={`w-48 h-72 rounded-3xl overflow-hidden relative transition-all duration-500 cursor-pointer flex-shrink-0 shadow-2xl ${
                         isActive 
-                          ? "border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.5)] scale-100 opacity-100" 
-                          : "border border-white/10 scale-95 opacity-50 hover:opacity-80"
+                          ? "border-2 border-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.6)] opacity-100" 
+                          : "border border-white/20 opacity-50 hover:opacity-80 grayscale-[30%]"
                       }`}
                     >
                       <img src={p.image} alt={p.name} className="w-full h-full object-cover pointer-events-none" />
                       <div className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
                         {p.badge}
                       </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-black/20 to-transparent flex flex-col justify-end p-3.5">
-                        <h3 className="font-bold text-xs text-white line-clamp-1">{p.name}</h3>
-                        <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price} <span className="text-[9px] font-normal text-neutral-400">/{p.unit}</span></p>
+                      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-black/30 to-transparent flex flex-col justify-end p-3.5">
+                        <span className="text-[9px] text-emerald-400 font-mono uppercase">Item #{idx+1}</span>
+                        <h3 className="font-bold text-xs text-white line-clamp-1 mt-0.5">{p.name}</h3>
+                        <p className="text-[11px] text-emerald-300 font-black mt-0.5">SAR {p.price}</p>
                       </div>
                     </div>
                   );
@@ -296,7 +306,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* TAB 3: CHECKOUT / HOTEL (TANPA PILIH HOTEL, TINGGAL NAMA & NO KAMAR) */}
+        {/* TAB 3: CHECKOUT / HOTEL */}
         {activeTab === "checkout" && (
           <div className="bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl space-y-3">
             <h3 className="font-extrabold text-sm text-white flex items-center gap-2 pb-2 border-b border-white/10">

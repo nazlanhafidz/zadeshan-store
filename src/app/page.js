@@ -79,7 +79,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-100 font-sans text-slate-900 pb-24">
       
-      {/* Header Mobile Compact */}
+      {/* Header Toko */}
       <header className="bg-slate-900 text-white py-3 px-4 sticky top-0 z-50 shadow-sm">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div>
@@ -96,7 +96,7 @@ export default function Home() {
 
       <main className="max-w-md mx-auto px-3 mt-4 space-y-4">
         
-        {/* SECTION: KATALOG PRODUK (SLIDING KE SAMPING YANG NYAMAN DI HP) */}
+        {/* SECTION: KATALOG PRODUK SLIDING HORIZONTAL KE SAMPING */}
         <section className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200/60">
           <div className="flex justify-between items-center mb-2.5 px-1">
             <h2 className="font-black text-xs text-slate-800 flex items-center gap-1">
@@ -106,22 +106,23 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <p className="text-xs text-slate-400 text-center py-6">Memuat produk...</p>
+            <p className="text-xs text-slate-400 text-center py-6">Memuat produk dari database...</p>
           ) : products.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-6">Belum ada produk.</p>
+            <p className="text-xs text-slate-400 text-center py-6">Belum ada produk tersedia.</p>
           ) : (
-            <div className="w-full overflow-x-auto pb-2 pt-1 no-scrollbar">
-              <div className="flex gap-2.5 w-max">
+            /* Container Scroll Horizontal */
+            <div className="w-full overflow-x-auto pb-2 pt-1 no-scrollbar cursor-grab active:cursor-grabbing">
+              <div className="flex gap-2.5 w-max px-0.5">
                 {products.map(p => (
-                  <div key={p.id} className="w-36 bg-slate-50 rounded-xl border border-slate-200/80 p-2.5 flex flex-col justify-between flex-shrink-0 shadow-xs">
+                  <div key={p.id} className="w-38 bg-slate-50 rounded-xl border border-slate-200/80 p-2.5 flex flex-col justify-between flex-shrink-0 shadow-xs transition hover:shadow-md">
                     <div>
-                      <img src={p.image} alt={p.name} className="w-full h-28 object-cover rounded-lg bg-white mb-2" />
+                      <img src={p.image} alt={p.name} className="w-full h-28 object-cover rounded-lg bg-white mb-2 shadow-xs" />
                       <h3 className="font-bold text-[11px] text-slate-800 line-clamp-2 leading-snug">{p.name}</h3>
                       <p className="text-[11px] text-emerald-700 font-black mt-1">SAR {p.price} <span className="text-[9px] font-normal text-slate-400">/{p.unit}</span></p>
                     </div>
                     <button
                       onClick={() => addToCart(p)}
-                      className="mt-2.5 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] py-1.5 rounded-lg transition active:scale-95 shadow-xs"
+                      className="mt-2.5 w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-[10px] py-1.5 rounded-lg transition shadow-xs"
                     >
                       + Tambah
                     </button>
@@ -162,7 +163,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* SECTION: FORM DATA PENGIRIMAN HOTEL */}
+        {/* SECTION: DATA PENGIRIMAN HOTEL */}
         <div className="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/60">
           <h3 className="font-black text-xs mb-3 text-slate-800 flex items-center gap-1">
             <span>🏨</span> Data Pengiriman ke Kamar

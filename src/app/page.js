@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
-  const [customer, setCustomer] = useState({ name: "", phone: "", hotel: "", room: "", payment: "Cash on Delivery" });
+  const [customer, setCustomer] = useState({ name: "", hotel: "", room: "", payment: "Cash on Delivery" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,17 +40,17 @@ export default function Home() {
   const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
   const handleCheckout = async () => {
-    if (!customer.name || !customer.phone || !customer.hotel || !customer.room) {
-      return alert("Mohon lengkapi Nama, No WhatsApp, Nama Hotel, dan Nomor Kamar!");
+    if (!customer.name || !customer.hotel || !customer.room) {
+      return alert("Mohon lengkapi Nama Pemesan, Nama Hotel, dan Nomor Kamar!");
     }
     if (cart.length === 0) return alert("Keranjang belanja masih kosong!");
 
     const itemsSummary = cart.map(i => `${i.name} (${i.qty} ${i.unit})`).join(", ");
 
-    // Simpan ke Supabase
+    // Simpan ke Supabase (Kolom phone diisi '-' karena input WA dihapus)
     const { error } = await supabase.from("orders").insert([{
       customer_name: customer.name,
-      phone: customer.phone,
+      phone: "-",
       hotel: customer.hotel,
       room: customer.room,
       items: itemsSummary,
@@ -66,7 +66,6 @@ export default function Home() {
     // Format Pesan WhatsApp
     const waMessage = `*PESANAN BARU - ZADESHAN STORE*\n\n` +
       `👤 Nama: ${customer.name}\n` +
-      `📱 No WA: ${customer.phone}\n` +
       `🏨 Hotel: ${customer.hotel}\n` +
       `🚪 Kamar: ${customer.room}\n` +
       `💳 Pembayaran: ${customer.payment}\n\n` +
@@ -82,7 +81,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20">
       
-      {/* Header Toko */}
+      {/* Header Toko (Tanpa Tombol Admin Login) */}
       <header className="bg-slate-900 text-white py-6 px-4 shadow-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div>
@@ -91,9 +90,6 @@ export default function Home() {
             </h1>
             <p className="text-[11px] text-emerald-400 font-mono">OLEH-OLEH & KEBUTUHAN JAMAAH DI MAKKAH</p>
           </div>
-          <a href="/admin" className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 transition">
-            ⚙️ Admin Login
-          </a>
         </div>
       </header>
 
@@ -111,7 +107,6 @@ export default function Home() {
           ) : products.length === 0 ? (
             <p className="text-xs text-slate-400 text-center py-10">Belum ada produk tersedia.</p>
           ) : (
-            /* KUNCI SLIDING KE SAMPING: overflow-x-auto, flex, w-max */
             <div className="w-full overflow-x-auto pb-4 pt-1 scrollbar-thin">
               <div className="flex gap-4 w-max px-1">
                 {products.map(p => (
@@ -165,7 +160,7 @@ export default function Home() {
             )}
           </div>
 
-          {/* Form Data Pengiriman Hotel */}
+          {/* Form Data Pengiriman Hotel (Tanpa Input No WhatsApp) */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
             <h3 className="font-extrabold text-sm mb-4 text-slate-900">🏨 Data Pengiriman ke Kamar Hotel</h3>
             <div className="space-y-3 text-xs">
@@ -176,16 +171,6 @@ export default function Home() {
                   placeholder="Contoh: H. Nazlan Hafidz"
                   value={customer.name}
                   onChange={e => setCustomer({ ...customer, name: e.target.value })}
-                  className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
-                />
-              </div>
-              <div>
-                <label className="block font-bold text-slate-600 mb-1">Nomor WhatsApp (Aktif di Makkah)</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: 62857xxxxxxxx"
-                  value={customer.phone}
-                  onChange={e => setCustomer({ ...customer, phone: e.target.value })}
                   className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-emerald-600"
                 />
               </div>
